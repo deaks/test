@@ -1,0 +1,14 @@
+alias test='cd $HOME/.test'
+
+mktest() {
+  cmd=$(cat test.c | grep gcc | sed 's#^\(.*\)gcc#gcc#');
+  echo "#########################";
+  echo "BUILDING $cmd";
+  $cmd;
+}
+
+mkclean() {
+  cat test.c | grep gcc | sed 's#^\(.*\)gcc#gcc#' | \
+     sed 's#gcc -o[ 	]*\([^ 	]*\).*$#\1#' | \
+     xargs rm -rf;
+}
