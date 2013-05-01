@@ -1,0 +1,7 @@
+git config --global user.name "Drake Silva"
+git config --global user.email "drake.silva@deaks.org"
+git config --global credential.helper cache
+git clone https://github.com/deaks/test.git
+git add bashrc_test.rc strrev
+git commit -m 'bash environment helper script' bashrc_test.rc 
+git commit -m 'string reversal' strrev
