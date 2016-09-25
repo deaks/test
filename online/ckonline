@@ -1,0 +1,51 @@
+#!/bin/bash
+nolimit=1
+declare -i attempts_remaining
+attempts_remaining=0
+
+if [ $# -lt 1 -o $# -gt 2 ] ; then
+  echo "usage: $(basename $0) host_address [ attempts ]"
+  exit 1
+elif [ $# -eq 2 ] ; then
+  if [ $2 -le 0 ] ; then
+    echo "Error: attempt count must be greater than zero"
+    echo "usage: $(basename $0) host_address [ attempts ]"
+    exit 2
+  fi
+  #echo "[DBG] setting attempts_remaining to $2"
+  attempts_remaining=$2
+  nolimit=0
+fi
+host=$1
+
+offline=1               # assume host is offline
+ping_timeout_seconds=2  # establish evaluation rate
+alert_eval='tput bel'   # request terminal alert-bell
+
+continue=1
+while [ $continue -eq 1 ] ; do
+  last_offline=$offline
+  out=$( ping -t "${ping_timeout_seconds}" "$host" >&/dev/null )
+  offline=$?
+
+  [ $nolimit -eq 0 -a $attempts_remaining -gt 0 ] \
+      && let "attempts_remaining = $attempts_remaining - 1"
+
+  [ $offline -ne $last_offline ] \
+      && eval "${alert_eval}"
+
+  if [ $offline -ne 0 ] ; then
+    echo "$host is OFFLINE"
+  else
+    echo "$host is ONLINE"
+  fi
+
+  #echo "[DBG] nolimit = $nolimit"
+  #echo "[DBG] attempts_remaining = $attempts_remaining"
+
+  [ $nolimit -eq 0 -a $attempts_remaining -le 0 ] \
+      && continue=0
+done
+
+# fail: loop exit indicates retry limit reached
+exit $offline
