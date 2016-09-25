@@ -22,10 +22,19 @@ offline=1               # assume host is offline
 ping_timeout_seconds=2  # establish evaluation rate
 alert_eval='tput bel'   # request terminal alert-bell
 
+# is ping part of iputils package?
+if ping -V 2>&1 | grep iputils >&/dev/null ; then
+  # yep, use '-w deadline' mode (Linux compatibility)
+  POPTS="-w ${ping_timeout_seconds}"
+else
+  # nope, use '-t timeout' mode (OSX compatibiltiy)
+  POPTS="-t ${ping_timeout_seconds}"
+fi
+
 continue=1
 while [ $continue -eq 1 ] ; do
   last_offline=$offline
-  out=$( ping -t "${ping_timeout_seconds}" "$host" >&/dev/null )
+  out=$( ping "${POPTS}" "$host" >&/dev/null )
   offline=$?
 
   [ $nolimit -eq 0 -a $attempts_remaining -gt 0 ] \
